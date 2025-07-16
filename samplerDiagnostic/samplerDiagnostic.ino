@@ -44,18 +44,34 @@ void setup() {
 }
 
 void loop() {
+  Serial.println("Starting diagnostic: ");
+  delay(2000);
+
   // First, run tests on all solenoids. 
   for (int containerPin : CONTAINER_PINS) {
-    Serial.println("Testing pin" + containerPin + "solenoid...");
+    Serial.print("Testing pin ");
+    Serial.print(containerPin);
+    Serial.println(" solenoid...");
     digitalWrite(containerPin, HIGH);
     delay(2000);
     digitalWrite(containerPin, LOW);
     delay(2000);
   }
 
+  // Then, run purge solenoid
+  Serial.print("Testing pin ");
+  Serial.print(OUTFLOW_SOLENOID_PIN);
+  Serial.println(" purge solenoid");
+  digitalWrite(OUTFLOW_SOLENOID_PIN, HIGH);
+  delay(2000);
+  digitalWrite(OUTFLOW_SOLENOID_PIN, LOW);
+  delay(2000);
+
   // Then, run sensor readings test
   for (int sensorPin : SENSOR_PINS) {
-    Serial.println("Testing pin" + sensorPin + "water level sensor...");
+    Serial.print("Testing pin ");
+    Serial.print(sensorPin);
+    Serial.println(" water level sensor...");
     Serial.println(digitalRead(sensorPin));
   }
 

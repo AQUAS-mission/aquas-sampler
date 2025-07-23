@@ -4,6 +4,7 @@ const int SENSOR_PINS[3] = {10, 11, 12}; // NOTE: HIGH = empty, LOW = full
 const int PUMP_PIN = 5;               // PWM pin for pump speed
 const int OUTFLOW_SOLENOID_PIN = 6;   // Pin to control outflow solenoid
 const int SAMPLE_TRIGGER_PIN = 2;     // Digital pin used to trigger sampling
+const int FORCE_RESET_PIN = 3;        // Pin to force reset all container status
 // const int TRIGGER_PIN_TESTER = 3;
 
 // Container status struct
@@ -32,6 +33,7 @@ void setup() {
   pinMode(PUMP_PIN, OUTPUT);
   pinMode(OUTFLOW_SOLENOID_PIN, OUTPUT);
   pinMode(SAMPLE_TRIGGER_PIN, INPUT);
+  pinMode(FORCE_RESET_PIN, INPUT);
     // pinMode(TRIGGER_PIN_TESTER, OUTPUT);
 
   digitalWrite(PUMP_PIN, LOW);
@@ -60,6 +62,15 @@ void purge(unsigned long duration) {
   // Stop pump and close outflow
   setPumpSpeed(0);
   digitalWrite(OUTFLOW_SOLENOID_PIN, LOW);
+}
+
+// Force reset all container status
+void forceReset() {
+  for (int i = 0; i < 3; i++) {
+    containers[i].is_filled = false;
+  }
+  currentSampleContainer = 0;
+  Serial.println("Force reset: All container status reset to false");
 }
 
 
@@ -122,6 +133,12 @@ void loop() {
   Serial.println(digitalRead(SAMPLE_TRIGGER_PIN));
   if (digitalRead(SAMPLE_TRIGGER_PIN) == HIGH) {
     sample();
+    delay(1000); // Debounce delay
+  }
+
+  // Force reset when pin goes HIGH
+  if (digitalRead(FORCE_RESET_PIN) == HIGH) {
+    forceReset();
     delay(1000); // Debounce delay
   }
 

@@ -1,10 +1,10 @@
 // Pin definitions
 const int CONTAINER_PINS[3] = {7, 8, 9};
-const int SENSOR_PINS[3] = {10, 11, 12};
+const int SENSOR_PINS[3] = {10, 11, 12}; // NOTE: HIGH = empty, LOW = full
 const int PUMP_PIN = 5;               // PWM pin for pump speed
 const int OUTFLOW_SOLENOID_PIN = 6;   // Pin to control outflow solenoid
 const int SAMPLE_TRIGGER_PIN = 2;     // Digital pin used to trigger sampling
-const int WATER_SENSOR_PIN = 7;       // Pin for the water sensor FS-IR02B
+// const int TRIGGER_PIN_TESTER = 3;
 
 // Container status struct
 struct ContainerStatus {
@@ -32,7 +32,7 @@ void setup() {
   pinMode(PUMP_PIN, OUTPUT);
   pinMode(OUTFLOW_SOLENOID_PIN, OUTPUT);
   pinMode(SAMPLE_TRIGGER_PIN, INPUT);
-  pinMode(WATER_SENSOR_PIN, INPUT);
+    // pinMode(TRIGGER_PIN_TESTER, OUTPUT);
 
   digitalWrite(PUMP_PIN, LOW);
   digitalWrite(OUTFLOW_SOLENOID_PIN, LOW);
@@ -74,7 +74,7 @@ void sample() {
   ContainerStatus &csc = containers[currentSampleContainer];
 
   // Check if already filled
-  if (digitalRead(csc.sensor_pin) == HIGH) {
+  if (digitalRead(csc.sensor_pin) == LOW) {
     Serial.print("Container "); Serial.print(currentSampleContainer + 1);
     Serial.println(" is already filled.");
     csc.is_filled = true;
@@ -86,11 +86,13 @@ void sample() {
   digitalWrite(csc.container_pin, HIGH);  // Open solenoid
   setPumpSpeed(200);
 
+  Serial.print("Sampling container ");
+  Serial.println(currentSampleContainer + 1);
   unsigned long startTime = millis();
   unsigned long timeout = 10000;  // 10 seconds safety timeout
 
   // Wait until the container is filled or timeout
-  while (digitalRead(csc.sensor_pin) == LOW) {
+  while (digitalRead(csc.sensor_pin) == HIGH) {
     if (millis() - startTime > timeout) {
       Serial.println("Sampling timeout: sensor did not trigger.");
       break;
@@ -100,9 +102,12 @@ void sample() {
   // Stop pump and close solenoid
   setPumpSpeed(0);
   digitalWrite(csc.container_pin, LOW);
+  Serial.print("Sampling for container ");
+  Serial.print(currentSampleContainer + 1);
+  Serial.println("COMPLETED.");
 
   // Mark container as filled and move to next
-  if(digitalRead(inPin) == 0){ //1 is no water, 0 is water detected
+  if(digitalRead(csc.sensor_pin) == 0){ //1 is no water, 0 is water detected
     csc.is_filled = true;
   }  
   currentSampleContainer++;
@@ -113,9 +118,13 @@ void sample() {
 
 void loop() {
   // Sample when digital pin goes HIGH (rising edge logic could be added)
+  Serial.print("Reading trigger pin: ");
+  Serial.println(digitalRead(SAMPLE_TRIGGER_PIN));
   if (digitalRead(SAMPLE_TRIGGER_PIN) == HIGH) {
     sample();
     delay(1000); // Debounce delay
   }
+
+  // digitalWrite(TRIGGER_PIN_TESTER, HIGH);
 
 } 

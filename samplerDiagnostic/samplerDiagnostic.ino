@@ -1,8 +1,8 @@
 // Pin definitions
 const int CONTAINER_PINS[3] = {7, 8, 9};
 const int SENSOR_PINS[3] = {10, 11, 12};
-const int PUMP_PIN = 5;               // PWM pin for pump speed
 const int OUTFLOW_SOLENOID_PIN = 6;   // Pin to control outflow solenoid
+const int PUMP_PIN = 5;               // PWM pin for pump speed
 const int SAMPLE_TRIGGER_PIN = 2;     // Digital pin used to trigger sampling
 const int WATER_SENSOR_PIN = 7;       // Pin for the water sensor FS-IR02B
 
@@ -19,6 +19,45 @@ int currentSampleContainer = 0;
 void setPumpSpeed(int value) {
   value = constrain(value, 0, 255);
   analogWrite(PUMP_PIN, value);
+}
+
+void testSolenoid(int pinNum) {
+    Serial.print("Testing pin ");
+    Serial.print(pinNum);
+    Serial.println(" solenoid...");
+    digitalWrite(pinNum, HIGH);
+    delay(2000);
+    digitalWrite(pinNum, LOW);
+    delay(2000);
+}
+
+void runAllSolenoids() {
+  // First, run tests on all solenoids. 
+  for (int containerPin : CONTAINER_PINS) {
+    testSolenoid(containerPin);
+  }
+
+  // Then, run purge solenoid
+  testSolenoid(OUTFLOW_SOLENOID_PIN);
+}
+
+void testSensors() {
+  // Then, run sensor readings test
+  for (int sensorPin : SENSOR_PINS) {
+    Serial.print("Testing pin ");
+    Serial.print(sensorPin);
+    Serial.println(" water level sensor...");
+    Serial.println(digitalRead(sensorPin));
+  }
+}
+
+void testPump() {
+// Then, test pump
+  Serial.println("Testing pump..."); 
+  setPumpSpeed(150);
+  delay(2000);
+  setPumpSpeed(0);
+  
 }
 
 void setup() {
@@ -47,39 +86,6 @@ void loop() {
   Serial.println("Starting diagnostic: ");
   delay(2000);
 
-  // First, run tests on all solenoids. 
-  for (int containerPin : CONTAINER_PINS) {
-    Serial.print("Testing pin ");
-    Serial.print(containerPin);
-    Serial.println(" solenoid...");
-    digitalWrite(containerPin, HIGH);
-    delay(2000);
-    digitalWrite(containerPin, LOW);
-    delay(2000);
-  }
-
-  // Then, run purge solenoid
-  Serial.print("Testing pin ");
-  Serial.print(OUTFLOW_SOLENOID_PIN);
-  Serial.println(" purge solenoid");
-  digitalWrite(OUTFLOW_SOLENOID_PIN, HIGH);
-  delay(2000);
-  digitalWrite(OUTFLOW_SOLENOID_PIN, LOW);
-  delay(2000);
-
-  // Then, run sensor readings test
-  for (int sensorPin : SENSOR_PINS) {
-    Serial.print("Testing pin ");
-    Serial.print(sensorPin);
-    Serial.println(" water level sensor...");
-    Serial.println(digitalRead(sensorPin));
-  }
-
-  // Then, test pump
-  Serial.println("Testing pump..."); 
-  setPumpSpeed(150);
-  delay(2000);
-  setPumpSpeed(0);
-  
+  testSensors();
 
 }

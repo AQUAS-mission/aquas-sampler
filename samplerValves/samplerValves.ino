@@ -1,8 +1,8 @@
 // Pin definitions
-const int CONTAINER_PINS[3] = {7, 8, 9};
+const int CONTAINER_PINS[3] = {6, 7, 8};
 const int SENSOR_PINS[3] = {10, 11, 12}; // NOTE: HIGH = empty, LOW = full
 const int PUMP_PIN = 5;               // PWM pin for pump speed
-const int OUTFLOW_SOLENOID_PIN = 6;   // Pin to control outflow solenoid
+const int OUTFLOW_SOLENOID_PIN = 9;   // Pin to control outflow solenoid
 const int SAMPLE_TRIGGER_PIN = 2;     // Digital pin used to trigger sampling
 const int FORCE_RESET_PIN = 3;        // Pin to force reset all container status
 // const int TRIGGER_PIN_TESTER = 3;
@@ -100,7 +100,7 @@ void sample() {
   Serial.print("Sampling container ");
   Serial.println(currentSampleContainer + 1);
   unsigned long startTime = millis();
-  unsigned long timeout = 10000;  // 10 seconds safety timeout
+  unsigned long timeout = 20000;  // 10 seconds safety timeout
 
   // Wait until the container is filled or timeout
   while (digitalRead(csc.sensor_pin) == HIGH) {

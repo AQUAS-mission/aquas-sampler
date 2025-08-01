@@ -1,10 +1,10 @@
 // Pin definitions
-const int CONTAINER_PINS[3] = {7, 8, 9};
+const int CONTAINER_PINS[3] = {6, 7, 8};
 const int SENSOR_PINS[3] = {10, 11, 12};
-const int OUTFLOW_SOLENOID_PIN = 6;   // Pin to control outflow solenoid
+const int OUTFLOW_SOLENOID_PIN = 9;   // Pin to control outflow solenoid
 const int PUMP_PIN = 5;               // PWM pin for pump speed
 const int SAMPLE_TRIGGER_PIN = 2;     // Digital pin used to trigger sampling
-const int WATER_SENSOR_PIN = 7;       // Pin for the water sensor FS-IR02B
+const int FORCE_RESET_PIN = 3;        // Pin to force reset all container status
 
 // Container status struct
 struct ContainerStatus {
@@ -76,7 +76,7 @@ void setup() {
   pinMode(PUMP_PIN, OUTPUT);
   pinMode(OUTFLOW_SOLENOID_PIN, OUTPUT);
   pinMode(SAMPLE_TRIGGER_PIN, INPUT);
-  pinMode(WATER_SENSOR_PIN, INPUT);
+  pinMode(FORCE_RESET_PIN, INPUT);
 
   digitalWrite(PUMP_PIN, LOW);
   digitalWrite(OUTFLOW_SOLENOID_PIN, LOW);
@@ -87,5 +87,14 @@ void loop() {
   delay(2000);
 
   testSensors();
-
+  delay(1000);
+  
+  runAllSolenoids();
+  delay(1000);
+  
+  testPump();
+  delay(1000);
+  
+  Serial.println("Diagnostic complete. Restarting in 5 seconds...");
+  delay(5000);
 }

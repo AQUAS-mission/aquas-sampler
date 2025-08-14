@@ -1,8 +1,8 @@
 // Pin definitions
-const int CONTAINER_PINS[3] = {6, 7, 8};
-const int SENSOR_PINS[3] = {10, 11, 12}; // NOTE: HIGH = empty, LOW = full
+const int CONTAINER_PINS[3] = {10, 11, 12};
+const int SENSOR_PINS[3] = {7, 8, 9}; // NOTE: HIGH = empty, LOW = full
 const int PUMP_PIN = 5;               // PWM pin for pump speed
-const int OUTFLOW_SOLENOID_PIN = 9;   // Pin to control outflow solenoid
+const int OUTFLOW_SOLENOID_PIN = 13;   // Pin to control outflow solenoid
 const int SAMPLE_TRIGGER_PIN = 2;     // Digital pin used to trigger sampling
 const int FORCE_RESET_PIN = 3;        // Pin to force reset all container status
 // const int TRIGGER_PIN_TESTER = 3;

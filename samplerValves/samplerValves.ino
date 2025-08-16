@@ -1,11 +1,10 @@
 // Pin definitions
 const int CONTAINER_PINS[3] = {10, 11, 12};
-const int SENSOR_PINS[3] = {7, 8, 9}; // NOTE: HIGH = empty, LOW = full
-const int PUMP_PIN = 5;               // PWM pin for pump speed
 const int OUTFLOW_SOLENOID_PIN = 13;   // Pin to control outflow solenoid
-const int SAMPLE_TRIGGER_PIN = 2;     // Digital pin used to trigger sampling
-const int FORCE_RESET_PIN = 3;        // Pin to force reset all container status
-// const int TRIGGER_PIN_TESTER = 3;
+const int SENSOR_PINS[3] = {7, 8, 9};
+const int PUMP_PIN = 2;               // Digital pin for pump control
+const int SAMPLE_TRIGGER_PIN = 6;     // Digital pin used to trigger sampling
+// const int FORCE_RESET_PIN = 3;    
 
 // Container status struct
 struct ContainerStatus {
@@ -33,17 +32,16 @@ void setup() {
   pinMode(PUMP_PIN, OUTPUT);
   pinMode(OUTFLOW_SOLENOID_PIN, OUTPUT);
   pinMode(SAMPLE_TRIGGER_PIN, INPUT);
-  pinMode(FORCE_RESET_PIN, INPUT);
-    // pinMode(TRIGGER_PIN_TESTER, OUTPUT);
+  // pinMode(FORCE_RESET_PIN, INPUT);
+  // pinMode(TRIGGER_PIN_TESTER, OUTPUT);
 
   digitalWrite(PUMP_PIN, LOW);
   digitalWrite(OUTFLOW_SOLENOID_PIN, LOW);
 }
 
-// Sets pump speed via PWM (0-255)
-void setPumpSpeed(int value) {
-  value = constrain(value, 0, 255);
-  analogWrite(PUMP_PIN, value);
+// Turn pump on/off
+void setPump(bool on) {
+  digitalWrite(PUMP_PIN, on ? HIGH : LOW);
 }
 
 // Purge system: flush lines for specified duration (ms)
@@ -53,15 +51,18 @@ void purge(unsigned long duration) {
     digitalWrite(containers[i].container_pin, LOW);
   }
 
+  Serial.println("Purging begins...");
+
   // Open outflow solenoid
   digitalWrite(OUTFLOW_SOLENOID_PIN, HIGH);
-  setPumpSpeed(200);
+  setPump(true);
 
   delay(duration);
 
   // Stop pump and close outflow
-  setPumpSpeed(0);
+  setPump(false);
   digitalWrite(OUTFLOW_SOLENOID_PIN, LOW);
+  Serial.println("Purging finished.");
 }
 
 // Force reset all container status
@@ -73,8 +74,6 @@ void forceReset() {
   Serial.println("Force reset: All container status reset to false");
 }
 
-
-// GPT4 logic tested below
 // Sample into the current container (guardrails included)
 void sample() {
   if (currentSampleContainer >= 3) {
@@ -83,6 +82,8 @@ void sample() {
   }
 
   ContainerStatus &csc = containers[currentSampleContainer];
+
+
 
   // Check if already filled
   if (digitalRead(csc.sensor_pin) == LOW) {
@@ -93,9 +94,13 @@ void sample() {
     return;
   }
 
+  // Clear to sample: purge first to clean pipeline.
+  purge(10000);
+
+
   // Begin sampling
   digitalWrite(csc.container_pin, HIGH);  // Open solenoid
-  setPumpSpeed(200);
+  setPump(true);
 
   Serial.print("Sampling container ");
   Serial.println(currentSampleContainer + 1);
@@ -111,14 +116,14 @@ void sample() {
   }
 
   // Stop pump and close solenoid
-  setPumpSpeed(0);
+  setPump(false);
   digitalWrite(csc.container_pin, LOW);
   Serial.print("Sampling for container ");
   Serial.print(currentSampleContainer + 1);
   Serial.println("COMPLETED.");
 
   // Mark container as filled and move to next
-  if(digitalRead(csc.sensor_pin) == 0){ //1 is no water, 0 is water detected
+  if(digitalRead(csc.sensor_pin) == LOW){ // LOW = water detected, HIGH = no water
     csc.is_filled = true;
   }  
   currentSampleContainer++;
@@ -137,10 +142,10 @@ void loop() {
   }
 
   // Force reset when pin goes HIGH
-  if (digitalRead(FORCE_RESET_PIN) == HIGH) {
-    forceReset();
-    delay(1000); // Debounce delay
-  }
+  // if (digitalRead(FORCE_RESET_PIN) == HIGH) {
+  //   forceReset();
+  //   delay(1000); // Debounce delay
+  // }
 
   // digitalWrite(TRIGGER_PIN_TESTER, HIGH);
 

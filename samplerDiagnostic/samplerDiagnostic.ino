@@ -2,8 +2,8 @@
 const int CONTAINER_PINS[3] = {10, 11, 12};
 const int OUTFLOW_SOLENOID_PIN = 13;   // Pin to control outflow solenoid
 const int SENSOR_PINS[3] = {7, 8, 9};
-const int PUMP_PIN = 5;               // PWM pin for pump speed
-const int SAMPLE_TRIGGER_PIN = 2;     // Digital pin used to trigger sampling
+const int PUMP_PIN = 2;               // PWM pin for pump speed
+const int SAMPLE_TRIGGER_PIN = 6;     // Digital pin used to trigger sampling
 const int FORCE_RESET_PIN = 3;        // Pin to force reset all container status
 
 // Container status struct
@@ -54,9 +54,11 @@ void testSensors() {
 void testPump() {
 // Then, test pump
   Serial.println("Testing pump..."); 
-  setPumpSpeed(150);
+  digitalWrite(PUMP_PIN, HIGH);
+  // setPumpSpeed(150);
   delay(2000);
-  setPumpSpeed(0);
+  digitalWrite(PUMP_PIN, LOW);
+  // setPumpSpeed(0);
   
 }
 
@@ -86,16 +88,18 @@ void loop() {
   Serial.println("Starting diagnostic: ");
   delay(2000);
 
-  // testSensors();
-  // delay(1000);
+  testSensors();
+  delay(1000);
 
   // testSolenoid(10);
   
-  runAllSolenoids();
-  delay(1000);
-  
-  testPump();
-  delay(1000);
+  // runAllSolenoids();
+  // delay(1000);
+
+  if (digitalRead(SENSOR_PINS[2]) == LOW) {
+    testPump();
+    delay(1000);
+  }  
   
   // Serial.println("Diagnostic complete. Restarting in 5 seconds...");
   // delay(5000);
